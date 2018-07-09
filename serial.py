@@ -57,14 +57,14 @@ while ser.is_open():
         bus.read_byte(arduino_address, temp_data)
         temp_data = float(temp_data) * 0.01
         ser.write("OK")
-        ser.write(str(temp_data))
+        er.write("last fuel sensor read value" + str(temp_data))
     
     #fuel checking
     bus.write_byte(arduino_address, check_fuel)
     bus.read_byte(arduino_address, temp_data)
     temp_data = float(temp_data) * 0.01
     ser.write("OK")
-    ser.write(str(temp_data))
+    ser.write("last fuel sensor read value" + str(temp_data))
 
 
 
