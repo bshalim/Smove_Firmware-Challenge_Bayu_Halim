@@ -9,9 +9,15 @@ An Arduino source code (.ino) that runs on Arduino Uno. It acts as a I2C slave t
 
 ### Bytes Used
 I2C arbitrary bus address is 0x08
+
 relay1_ON = 0x11
+
 relay2_ON = 0x21
+
 relay1_OFF = 0x10
+
 relay2_OFF = 0x20
+
+check_fuel = 0x30
 
 Links to open-sourced libraries used are embedded within the source code itself
