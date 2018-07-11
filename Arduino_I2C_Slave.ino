@@ -6,6 +6,9 @@ int relay_1 = 3;
 int relay_2 = 5;
 int fuel_sensor = A0;
 
+//constants
+long pi_reset_timer = 10000;
+
 //temp variables
 byte at_commands;
 int fuel_level;
@@ -18,6 +21,8 @@ void setup()
   pinMode(relay_1, OUTPUT);
   pinMode(relay_2, OUTPUT);
   pinMode(fuel_sensor, INPUT);
+
+  //Supply power to Raspberry Pi when Arduino boots
   digitalWrite(pi_power, HIGH);
   
   //initiate I2C transmission
@@ -66,14 +71,17 @@ void receiveEvent(int numBytes)
         break;
     }
   }
-  
+
+  //start timer when there is no data in the I2C Bus
   if(Wire.available() < 1)
   {
     start_timer = millis();   
   }
+
+  //countdown timer, if there is no data in the I2C Bus for 10 seconds, reset Raspberry Pi
   while(Wire.available() < 1)
   {
-    if(millis()-start_timer >7000)
+    if(millis()-start_timer > pi_reset_timer)
     {
       reset_Pi();
       break;
@@ -81,11 +89,10 @@ void receiveEvent(int numBytes)
   }  
 }
 
-
+//function to reset power to Raspberry Pi
 void reset_Pi()
 {
   digitalWrite(pi_power, LOW);
   delay(1000);
   digitalWrite(pi_power, HIGH);
 }
-
