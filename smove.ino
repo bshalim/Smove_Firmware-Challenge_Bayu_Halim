@@ -9,6 +9,7 @@ int fuel_sensor = A0;
 //temp variables
 byte at_commands;
 int fuel_level;
+long start_timer;
 
 void setup() 
 {
@@ -20,14 +21,13 @@ void setup()
   digitalWrite(pi_power, HIGH);
   
   //initiate I2C transmission
-  Wire.begin(8); //arbitrary address of Pi I2C
+  Wire.begin(0x08); //arbitrary address of Pi I2C
   Wire.onRequest(requestEvent);
   Wire.onReceive(receiveEvent);
 }
 
 void loop() 
 {
-  fuel_level = analogRead(fuel_sensor);
   delay(100);
 }
 
@@ -67,9 +67,12 @@ void receiveEvent(int numBytes)
     }
   }
   
-  while(!Wire.available())
+  if(Wire.available() < 1)
   {
-    start_timer = millis();
+    start_timer = millis();   
+  }
+  while(Wire.available() < 1)
+  {
     if(millis()-start_timer >7000)
     {
       reset_Pi();
