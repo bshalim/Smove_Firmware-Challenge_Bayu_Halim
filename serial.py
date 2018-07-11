@@ -1,10 +1,11 @@
 import time
 import serial #https://pythonhosted.org/pyserial/pyserial_api.html
 import smbus  #https://github.com/bivab/smbus-cffi
+import threading #https://docs.python.org/3/library/threading.html
 
 
 #constants
-temp_data = 0
+fuel_level = 0
 
 relay1_ON  = 0x11
 relay2_ON  = 0x21
@@ -33,8 +34,16 @@ try:
 except Exception:
     print ("error opening serial port")
     exit()
-    
 
+#fuel checking    
+def check_fuel():
+    threading.Timer(60.0, check_fuel).start()
+    bus.write_byte(arduino_address, check_fuel)
+    time.sleep(1)
+    fuel_level = bus.read_byte(arduino_address)
+    fuel_level = int(fuel_level) *0.0049/ 0.01 #conversion from 10-bit Arduino ADC value (0.0049V/unit) to 0.01V/unit
+    ser.write("last fuel sensor read value ")
+    ser.write(str(fuel_level))
 
 
 while ser.is_open():
@@ -54,19 +63,12 @@ while ser.is_open():
         bus.write_byte(arduino_address, relay2_OFF)
     elif str(data) =="AT+SENS=?":
         bus.write_byte(arduino_address, check_fuel)
-        bus.read_byte(arduino_address, temp_data)
-        temp_data = int(temp_data) *0.0049/ 0.01 #conversion from 10-bit Arduino ADC value (0.0049V/unit) to 0.01V/unit
+        fuel_level = bus.read_byte(arduino_address)
+        fuel_level = int(fuel_level) *0.0049/ 0.01 #conversion from 10-bit Arduino ADC value (0.0049V/unit) to 0.01V/unit
         ser.write("OK")
-        ser.write(str(temp_data))
+        ser.write(str(fuel_level))
+
+    #periodically check fuel
+    check_fuel()
     
-    #fuel checking
-    bus.write_byte(arduino_address, check_fuel)
-    bus.read_byte(arduino_address, temp_data)
-    temp_data = int(temp_data) *0.0049/ 0.01 #conversion from 10-bit Arduino ADC value (0.0049V/unit) to 0.01V/unit
-    ser.write("OK")
-    ser.write(str(temp_data))
-
-
-
-
-
+    
