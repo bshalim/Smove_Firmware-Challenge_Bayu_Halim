@@ -22,6 +22,7 @@ bus = smbus.SMBus(0) #port I2C0
 ser = serial.Serial(
     port='/dev/tty-ACM0',
     baudrate=9600,
+    bytesize=EIGHTBITS
 )
 
 ser.flushInput()
@@ -30,14 +31,17 @@ ser.flushOutput()
 
 try:
     ser.Open()
-
+    ser.write("RESET")
+    
 except Exception:
     print ("error opening serial port")
     exit()
 
+    
+    
 #fuel checking    
 def check_fuel():
-    threading.Timer(1.0, check_fuel).start()
+    threading.Timer(1.0, check_fuel).start() #thread this task to achieve fuel reading every second
     bus.write_byte(arduino_address, check_fuel)
     time.sleep(1)
     fuel_level = bus.read_byte(arduino_address)
@@ -47,8 +51,9 @@ def check_fuel():
 
 
 while ser.is_open():
-    data = ser.readline()
-
+    data = ser.readline() #read data transmitted by UART Terminal
+    
+    #perform task according to instructions sent by UART Terminal
     if str(data) == "AT+RLYON=1":
         ser.write("OK")
         bus.write_byte(arduino_address, relay1_ON)
