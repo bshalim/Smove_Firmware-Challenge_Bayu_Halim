@@ -13,7 +13,7 @@ relay2_OFF = 0x20
 check_fuel = 0x30
 
 #configure I2C connection
-arduino_address = 0x55
+arduino_address = 0x08
 bus = smbus.SMBus(0) #port I2C0
 
 
@@ -30,8 +30,8 @@ ser.flushOutput()
 try:
     ser.Open()
 
-except Exception as e:
-    print ("error opening serial port: " + str(e))
+except Exception:
+    print ("error opening serial port")
     exit()
     
 
@@ -55,16 +55,16 @@ while ser.is_open():
     elif str(data) =="AT+SENS=?":
         bus.write_byte(arduino_address, check_fuel)
         bus.read_byte(arduino_address, temp_data)
-        temp_data = float(temp_data) * 0.01
+        temp_data = int(temp_data) *0.0049/ 0.01 #conversion from 10-bit Arduino ADC value (0.0049V/unit) to 0.01V/unit
         ser.write("OK")
-        er.write("last fuel sensor read value" + str(temp_data))
+        ser.write(str(temp_data))
     
     #fuel checking
     bus.write_byte(arduino_address, check_fuel)
     bus.read_byte(arduino_address, temp_data)
-    temp_data = float(temp_data) * 0.01
+    temp_data = int(temp_data) *0.0049/ 0.01 #conversion from 10-bit Arduino ADC value (0.0049V/unit) to 0.01V/unit
     ser.write("OK")
-    ser.write("last fuel sensor read value" + str(temp_data))
+    ser.write(str(temp_data))
 
 
 
