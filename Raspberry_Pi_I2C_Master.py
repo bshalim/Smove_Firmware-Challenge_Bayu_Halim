@@ -1,16 +1,20 @@
 import time
 import serial #https://pythonhosted.org/pyserial/pyserial_api.html
 import smbus  #https://github.com/bivab/smbus-cffi
+import threading #https://docs.python.org/3/library/threading.html
 
 
 #constants
+fuel_level = 0
+
 relay1_ON  = 0x11
 relay2_ON  = 0x21
 relay1_OFF = 0x10
 relay2_OFF = 0x20
+check_fuel = 0x30
 
 #configure I2C connection
-arduino_address = 0x55
+arduino_address = 0x08
 bus = smbus.SMBus(0) #port I2C0
 
 
@@ -27,16 +31,24 @@ ser.flushOutput()
 try:
     ser.Open()
 
-except Exception as e:
-    print ("error opening serial port: " + str(e))
+except Exception:
+    print ("error opening serial port")
     exit()
-    
 
+#fuel checking    
+def check_fuel():
+    threading.Timer(1.0, check_fuel).start()
+    bus.write_byte(arduino_address, check_fuel)
+    time.sleep(1)
+    fuel_level = bus.read_byte(arduino_address)
+    fuel_level = int(fuel_level) *0.0049/ 0.01 #conversion from 10-bit Arduino ADC value (0.0049V/unit) to 0.01V/unit
+    ser.write("last fuel sensor read value ")
+    ser.write(str(fuel_level))
 
 
 while ser.is_open():
     data = ser.readline()
-    temp_data
+
     if str(data) == "AT+RLYON=1":
         ser.write("OK")
         bus.write_byte(arduino_address, relay1_ON)
@@ -50,14 +62,13 @@ while ser.is_open():
         ser.write("OK")
         bus.write_byte(arduino_address, relay2_OFF)
     elif str(data) =="AT+SENS=?":
-        bus.read_byte(arduino_address, temp_data)
-        temp_data = float(temp_data) * 0.01
+        bus.write_byte(arduino_address, check_fuel)
+        fuel_level = bus.read_byte(arduino_address)
+        fuel_level = int(fuel_level) *0.0049/ 0.01 #conversion from 10-bit Arduino ADC value (0.0049V/unit) to 0.01V/unit
         ser.write("OK")
-        ser.write(str(temp_data))
-               
- 
+        ser.write(str(fuel_level))
 
-
-
-
-
+    #periodically check fuel
+    check_fuel()
+    
+    
