@@ -29,14 +29,10 @@ ser.flushInput()
 ser.flushOutput()
 
 
-try:
-    ser.Open()
+if ser.is_open()
     ser.write("RESET")
-    
-except Exception:
-    print ("error opening serial port")
-    exit()
-
+else
+    ser.open()
     
     
 #fuel checking    
